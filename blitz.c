@@ -3431,7 +3431,7 @@ static int blitz_exec_nodes(blitz_tpl *tpl, blitz_node *first_child,
         }
     }
 
-    if (BLITZ_G(scope_lookup_limit) || BLITZ_G(enable_magic_scope)) BLITZ_SCOPE_STACK_PUSH(tpl, parent_params);
+    if (BLITZ_G(scope_lookup_limit) || BLITZ_G(enable_magic_scope)) { BLITZ_SCOPE_STACK_PUSH(tpl, parent_params); }
 
     node = first_child;
     while (node) {
@@ -3503,7 +3503,7 @@ static int blitz_exec_nodes(blitz_tpl *tpl, blitz_node *first_child,
         }
     }
 
-    if (BLITZ_G(scope_lookup_limit) || BLITZ_G(enable_magic_scope)) BLITZ_SCOPE_STACK_SHIFT(tpl);
+    if (BLITZ_G(scope_lookup_limit) || BLITZ_G(enable_magic_scope)) { BLITZ_SCOPE_STACK_SHIFT(tpl); }
 
     if (BLITZ_DEBUG)
         php_printf("== D:b3  %ld,%ld,%ld\n",last_close,parent_begin,parent_end);
