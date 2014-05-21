@@ -2297,7 +2297,8 @@ static inline int blitz_scope_stack_find(blitz_tpl *tpl, char *key, unsigned lon
 
     while (i <= lookup_limit) {
         data = tpl->scope_stack[tpl->scope_stack_pos - i - 1];
-        if (SUCCESS == zend_hash_find(Z_ARRVAL_P(data), key, key_len, (void **) zparam)) {
+        if ((IS_ARRAY == Z_TYPE_P(data) && SUCCESS == zend_hash_find(Z_ARRVAL_P(data), key, key_len, (void **) zparam)) ||
+            (IS_OBJECT == Z_TYPE_P(data) && SUCCESS == zend_hash_find(Z_OBJPROP_P(data), key, key_len, (void **) zparam))) {
             return i;
         }
         i++;
