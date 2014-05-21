@@ -2418,7 +2418,11 @@ static inline int blitz_exec_predefined_method(blitz_tpl *tpl, blitz_node *node,
             }
         } else if (arg->type == BLITZ_ARG_TYPE_VAR) {
             if (iteration_params) {
-                BLITZ_ARG_NOT_EMPTY(*arg, Z_ARRVAL_P(iteration_params), not_empty);
+                if (Z_TYPE_P(iteration_params) == IS_ARRAY) {
+                    BLITZ_ARG_NOT_EMPTY(*arg, Z_ARRVAL_P(iteration_params), not_empty);
+                } else if (Z_TYPE_P(iteration_params) == IS_OBJECT) {
+                    BLITZ_ARG_NOT_EMPTY(*arg, Z_OBJPROP_P(iteration_params), not_empty);
+                }
                 if (not_empty == -1) {
                     BLITZ_ARG_NOT_EMPTY(*arg, tpl->hash_globals, not_empty);
                     if (not_empty == -1) {
@@ -3122,8 +3126,10 @@ static inline void blitz_check_arg (
         *not_empty = 1;
     } else {
         if (arg->type == BLITZ_ARG_TYPE_VAR) {
-            if (parent_params) {
+            if (parent_params && Z_TYPE_P(parent_params) == IS_ARRAY) {
                 BLITZ_ARG_NOT_EMPTY(*arg, Z_ARRVAL_P(parent_params), *not_empty);
+            } else if (parent_params && Z_TYPE_P(parent_params) == IS_OBJECT) {
+                BLITZ_ARG_NOT_EMPTY(*arg, Z_OBJPROP_P(parent_params), *not_empty);
             } else {
                 *not_empty = -1;
             }
