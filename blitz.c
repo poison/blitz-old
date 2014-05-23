@@ -17,7 +17,7 @@
 */
 
 #define BLITZ_DEBUG 0 
-#define BLITZ_VERSION_STRING "0.8.6"
+#define BLITZ_VERSION_STRING "0.8.7"
 
 #ifndef PHP_WIN32
 #include <sys/mman.h>
@@ -1687,7 +1687,8 @@ static inline int blitz_analizer_add(analizer_ctx *ctx TSRMLS_DC) {
     }
 
     if (lexem_len > BLITZ_MAX_LEXEM_LEN) {
-        if (tag->tag_id != BLITZ_TAG_ID_CLOSE_ALT) { /* HTML-comments fix */
+        /* comments fix: CLOSE_ALT by default can be HTML-comment (dirty check), COMMENT_CLOSE - to enable large piece of code commented */
+        if ((tag->tag_id != BLITZ_TAG_ID_CLOSE_ALT) && (tag->tag_id != BLITZ_TAG_ID_COMMENT_CLOSE)) { /* comments fix */
             blitz_error(tpl TSRMLS_CC, E_WARNING,
                 "SYNTAX ERROR: lexem is too long (%s: line %lu, pos %lu)",
                 tpl->static_data.name, get_line_number(body, current_open), get_line_pos(body, current_open)
@@ -1696,7 +1697,7 @@ static inline int blitz_analizer_add(analizer_ctx *ctx TSRMLS_DC) {
         return 1;
     } 
 
-    if (lexem_len <= 0) {
+    if (lexem_len <= 0 && (tag->tag_id != BLITZ_TAG_ID_CLOSE_ALT) && (tag->tag_id != BLITZ_TAG_ID_COMMENT_CLOSE)) {
         blitz_error(tpl TSRMLS_CC, E_WARNING,
             "SYNTAX ERROR: zero length lexem (%s: line %lu, pos %lu)",
             tpl->static_data.name,
@@ -1858,8 +1859,10 @@ static inline void blitz_analizer_process_node (analizer_ctx *ctx, unsigned int 
         ctx->pos_open = ctx->tag->pos;
     }
 
-    if (is_last && state != BLITZ_ANALISER_STATE_NONE)
+    if (is_last && state != BLITZ_ANALISER_STATE_NONE) {
+        if (BLITZ_DEBUG) php_printf("is_last = %u, state = %u\n", is_last, state);
         blitz_analizer_warn_unexpected_tag(ctx->tpl, ctx->tag->tag_id, ctx->tag->pos TSRMLS_CC);
+    }
 
     if (ctx->tag)
         ctx->prev_tag = ctx->tag;
@@ -3245,7 +3248,7 @@ static inline void blitz_check_expr (
                 c = Z_TYPE_PP(z[i]);
                 if (c == IS_STRING) {
                     c = BLITZ_COMPARE_STRING;
-                } else if ((c == IS_LONG) || (c == IS_BOOL) || (c == IS_DOUBLE)) {
+                } else if ((c == IS_LONG) || (c == IS_BOOL) || (c == IS_DOUBLE) || (c == IS_NULL)) {
                     c = BLITZ_COMPARE_DOUBLE;                
                 }
             } else {
