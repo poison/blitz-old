@@ -1,7 +1,7 @@
 --TEST--
 nl2br filter
 --FILE--
-<?
+<?php
 
 $str = <<<STR
 <html><head>bla</head></html>
