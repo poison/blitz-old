@@ -2958,6 +2958,7 @@ static void blitz_exec_context(blitz_tpl *tpl, blitz_node *node, zval *parent_pa
     zval **ctx_iterations = NULL;
     zval **ctx_data = NULL;
     call_arg *arg = node->args;
+    HashPosition pos;
 
     if (BLITZ_DEBUG) php_printf("*** FUNCTION *** blitz_exec_context: %s\n",node->args->name);
 
@@ -3006,8 +3007,8 @@ static void blitz_exec_context(blitz_tpl *tpl, blitz_node *node, zval *parent_pa
     if (Z_TYPE_PP(ctx_iterations) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_PP(ctx_iterations))) {
         if (BLITZ_DEBUG) php_printf("will walk through iterations\n");
 
-        zend_hash_internal_pointer_reset_ex(Z_ARRVAL_PP(ctx_iterations), NULL);
-        check_key = zend_hash_get_current_key_ex(Z_ARRVAL_PP(ctx_iterations), &key, &key_len, &key_index, 0, NULL);
+        zend_hash_internal_pointer_reset_ex(Z_ARRVAL_PP(ctx_iterations), &pos);
+        check_key = zend_hash_get_current_key_ex(Z_ARRVAL_PP(ctx_iterations), &key, &key_len, &key_index, 0, &pos);
         if (BLITZ_DEBUG) php_printf("KEY_TYPE: %d\n", check_key);
 
         if (HASH_KEY_IS_STRING == check_key) {
@@ -3022,7 +3023,7 @@ static void blitz_exec_context(blitz_tpl *tpl, blitz_node *node, zval *parent_pa
             if (BLITZ_DEBUG) php_printf("KEY_CHECK: %d <long>\n", key_index);
             BLITZ_LOOP_INIT(tpl, zend_hash_num_elements(Z_ARRVAL_PP(ctx_iterations)));
             first_type = -1;
-            while (zend_hash_get_current_data_ex(Z_ARRVAL_PP(ctx_iterations),(void**) &ctx_data, NULL) == SUCCESS) {
+            while (zend_hash_get_current_data_ex(Z_ARRVAL_PP(ctx_iterations),(void**) &ctx_data, &pos) == SUCCESS) {
 
                 if (first_type == -1) first_type = Z_TYPE_PP(ctx_data);
                 if (BLITZ_DEBUG) {
@@ -3038,7 +3039,7 @@ static void blitz_exec_context(blitz_tpl *tpl, blitz_node *node, zval *parent_pa
                         get_line_number(tpl->static_data.body, node->pos_begin),
                         get_line_pos(tpl->static_data.body, node->pos_begin)
                     );
-                    zend_hash_move_forward_ex(Z_ARRVAL_PP(ctx_iterations), NULL);
+                    zend_hash_move_forward_ex(Z_ARRVAL_PP(ctx_iterations), &pos);
                     continue;
                 }
 
@@ -3049,7 +3050,7 @@ static void blitz_exec_context(blitz_tpl *tpl, blitz_node *node, zval *parent_pa
                     *ctx_data TSRMLS_CC
                 );
                 BLITZ_LOOP_INCREMENT(tpl);
-                zend_hash_move_forward_ex(Z_ARRVAL_PP(ctx_iterations), NULL);
+                zend_hash_move_forward_ex(Z_ARRVAL_PP(ctx_iterations), &pos);
             }
         } else {
             blitz_error(tpl TSRMLS_CC, E_WARNING, "INTERNAL ERROR: non existant hash key");
